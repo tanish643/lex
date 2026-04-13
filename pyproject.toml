@@ -21,7 +21,7 @@ dependencies = [
 ]
 
 [project.scripts]
-lexai = "lexai:main"
+lexai = "lexai.cli:main"
 
 [build-system]
 requires = ["uv_build>=0.11.6,<0.12.0"]
