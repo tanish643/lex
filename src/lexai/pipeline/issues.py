@@ -23,7 +23,7 @@ from tenacity import retry, stop_after_attempt, wait_exponential
 
 from lexai.prompts.issues import ISSUE_EXTRACTION_SYSTEM
 
-MODEL = "gemini-2.5-flash"
+MODEL = "gemini-flash-lite-latest"
 
 
 class Issue(BaseModel):

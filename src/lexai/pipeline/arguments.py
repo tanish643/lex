@@ -25,7 +25,7 @@ from lexai.pipeline.issues import Issue
 from lexai.pipeline.research import RankedCase
 from lexai.prompts.arguments import ARGUMENT_GENERATION_SYSTEM
 
-MODEL = "gemini-2.5-flash"
+MODEL = "gemini-flash-lite-latest"
 _FENCE_RE = re.compile(r"^```(?:json)?\s*|\s*```$", re.MULTILINE)
 
 

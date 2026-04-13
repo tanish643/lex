@@ -29,7 +29,7 @@ from lexai.prompts.rerank import RERANK_SYSTEM
 from lexai.rag.embed import embed_texts
 from lexai.rag.vectorstore import Match, query as pinecone_query
 
-RERANK_MODEL = "gemini-2.5-flash"
+RERANK_MODEL = "gemini-flash-lite-latest"
 
 _FENCE_RE = re.compile(r"^```(?:json)?\s*|\s*```$", re.MULTILINE)
 
