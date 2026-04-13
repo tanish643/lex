@@ -33,3 +33,8 @@ dev = [
     "pytest-asyncio>=1.3.0",
     "ruff>=0.15.10",
 ]
+
+[tool.pytest.ini_options]
+markers = [
+    "integration: tests that hit real external APIs (Voyage, Pinecone, Gemini) — require .env keys",
+]
