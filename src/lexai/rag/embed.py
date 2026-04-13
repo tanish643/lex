@@ -18,7 +18,9 @@ from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_ex
 
 MODEL = "voyage-law-2"
 VOYAGE_DIM = 1024
-MAX_BATCH = 128
+# Voyage free tier is 10K TPM; a batch of 8 chunks @ ~650 tokens each
+# stays well under the cap. Paid tier can bump to 128.
+MAX_BATCH = 8
 
 InputType = Literal["document", "query"]
 _VALID_INPUT_TYPES = ("document", "query")
