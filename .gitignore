@@ -8,6 +8,8 @@ data/index/
 data/ingested.json
 outputs/
 fixtures/moots/*.pdf
+evals/problems/*.pdf
+evals/outputs/
 .ipynb_checkpoints/
 *.egg-info/
 .ruff_cache/
