@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>LexAI — Phase 1 Demo</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    html, body { font-family: 'Inter', ui-sans-serif, system-ui, sans-serif; }
+    .mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+    .grain {
+      background-image: radial-gradient(rgba(255,255,255,0.02) 1px, transparent 1px);
+      background-size: 3px 3px;
+    }
+    .glow { box-shadow: 0 0 80px -20px rgba(99,102,241,0.35); }
+    .progress-line { animation: fadein 0.25s ease-out; }
+    @keyframes fadein { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+    .pulse-dot::after {
+      content: '';
+      display: inline-block;
+      width: 6px; height: 6px;
+      border-radius: 999px;
+      background: currentColor;
+      margin-left: 6px;
+      vertical-align: middle;
+      animation: pulse 1.3s infinite ease-in-out;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(1.4); }
+    }
+  </style>
+</head>
+<body class="bg-zinc-950 text-zinc-100 min-h-screen grain antialiased">
+  <!-- nav -->
+  <nav class="border-b border-zinc-900 backdrop-blur sticky top-0 z-20 bg-zinc-950/80">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center font-bold">L</div>
+        <div>
+          <div class="font-semibold tracking-tight">LexAI</div>
+          <div class="text-[11px] text-zinc-500">Phase 1 · Moot Court RAG Pipeline</div>
+        </div>
+      </div>
+      <div class="flex items-center gap-2 text-xs text-zinc-400">
+        <span class="px-2 py-1 rounded-md bg-zinc-900 border border-zinc-800 mono">gemini-flash-lite</span>
+        <span class="px-2 py-1 rounded-md bg-zinc-900 border border-zinc-800 mono">voyage-law-2</span>
+        <span class="px-2 py-1 rounded-md bg-zinc-900 border border-zinc-800 mono">pinecone</span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- hero -->
+  <header class="max-w-6xl mx-auto px-6 pt-16 pb-10">
+    <div class="text-xs tracking-widest uppercase text-indigo-400 mb-3">Live Demo</div>
+    <h1 class="text-5xl font-semibold tracking-tight leading-tight max-w-3xl">
+      Upload a moot problem.<br/>
+      <span class="bg-gradient-to-r from-indigo-400 via-violet-300 to-fuchsia-300 bg-clip-text text-transparent">Get a grounded memorial draft.</span>
+    </h1>
+    <p class="mt-5 max-w-2xl text-zinc-400 text-lg leading-relaxed">
+      PDF → Gemini extracts issues → Voyage embeds the query → Pinecone retrieves top-15 landmark Indian cases → Gemini re-ranks to 5 → IRAC arguments generated → <span class="text-zinc-200 font-medium">every citation validated against the corpus</span> → DOCX memorial.
+    </p>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-6 pb-24 grid gap-8 md:grid-cols-5">
+    <!-- left: upload + config -->
+    <section class="md:col-span-2 space-y-6">
+      <div class="rounded-2xl border border-zinc-800 bg-zinc-900/50 backdrop-blur p-6 glow">
+        <h2 class="text-sm font-medium tracking-wider text-zinc-400 uppercase mb-4">Moot Problem</h2>
+
+        <label id="drop" class="block border-2 border-dashed border-zinc-800 hover:border-indigo-500/60 rounded-xl p-8 text-center cursor-pointer transition">
+          <input id="file" type="file" accept="application/pdf" class="hidden" />
+          <div class="w-12 h-12 mx-auto rounded-full bg-zinc-800 flex items-center justify-center mb-3">
+            <svg class="w-5 h-5 text-zinc-400" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v12m0 0l-4-4m4 4l4-4M4 20h16" />
+            </svg>
+          </div>
+          <div id="file-label" class="text-sm text-zinc-300">Drop a moot PDF or click to browse</div>
+          <div class="text-xs text-zinc-500 mt-1">.pdf, public moot archives (NLSIU, NALSAR, Jessup…)</div>
+        </label>
+
+        <div class="mt-5 space-y-3 text-sm">
+          <div>
+            <label class="block text-xs uppercase tracking-wider text-zinc-500 mb-1">Title on cover</label>
+            <input id="title" value="NALSAR-CCI Anti-Trust 2026 Moot" class="w-full bg-zinc-950 border border-zinc-800 rounded-md px-3 py-2 text-zinc-100 focus:border-indigo-500 outline-none" />
+          </div>
+          <div>
+            <label class="block text-xs uppercase tracking-wider text-zinc-500 mb-1">Tribunal</label>
+            <input id="tribunal" value="Competition Appellate Tribunal of Lilliput" class="w-full bg-zinc-950 border border-zinc-800 rounded-md px-3 py-2 focus:border-indigo-500 outline-none" />
+          </div>
+          <div>
+            <label class="block text-xs uppercase tracking-wider text-zinc-500 mb-1">Case number</label>
+            <input id="case_number" value="Appeal No. __ of 2026" class="w-full bg-zinc-950 border border-zinc-800 rounded-md px-3 py-2 focus:border-indigo-500 outline-none" />
+          </div>
+        </div>
+
+        <button id="generate" disabled class="mt-6 w-full bg-indigo-500 hover:bg-indigo-400 disabled:bg-zinc-800 disabled:text-zinc-500 disabled:cursor-not-allowed text-zinc-50 font-medium py-3 rounded-xl transition">
+          Generate memorial
+        </button>
+
+        <div class="mt-4 text-xs text-zinc-500 leading-relaxed">
+          ~2 minutes on free-tier Voyage. Zero hallucinated citations — if a case isn't in the corpus, no cite is written.
+        </div>
+      </div>
+
+      <div id="result-card" class="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-6 hidden">
+        <h2 class="text-sm font-medium tracking-wider text-zinc-400 uppercase mb-4">Result</h2>
+        <div class="grid grid-cols-3 gap-3 mb-5 text-center">
+          <div class="rounded-lg bg-zinc-950 border border-zinc-800 p-3">
+            <div id="stat-issues" class="text-2xl font-semibold text-indigo-300">–</div>
+            <div class="text-[11px] text-zinc-500 uppercase tracking-wider">Issues</div>
+          </div>
+          <div class="rounded-lg bg-zinc-950 border border-zinc-800 p-3">
+            <div id="stat-cites" class="text-2xl font-semibold text-emerald-300">–</div>
+            <div class="text-[11px] text-zinc-500 uppercase tracking-wider">Citations</div>
+          </div>
+          <div class="rounded-lg bg-zinc-950 border border-zinc-800 p-3">
+            <div id="stat-hall" class="text-2xl font-semibold text-rose-300">–</div>
+            <div class="text-[11px] text-zinc-500 uppercase tracking-wider">Hallucinations</div>
+          </div>
+        </div>
+        <a id="download" class="block w-full text-center bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-medium py-3 rounded-xl transition" href="#">
+          Download .docx
+        </a>
+      </div>
+
+      <div class="rounded-2xl border border-zinc-800 bg-zinc-900/30 p-6">
+        <h3 class="text-sm font-medium tracking-wider text-zinc-400 uppercase mb-3">Existing Memorial</h3>
+        <p class="text-xs text-zinc-500 mb-4 leading-relaxed">
+          The last successful run produced a DOCX at <code class="mono bg-zinc-950 px-1.5 py-0.5 rounded">outputs/memorial_v1.docx</code>. Download it without re-running the pipeline.
+        </p>
+        <a href="/memorial/latest" class="block text-center border border-zinc-700 hover:border-zinc-500 text-zinc-200 text-sm py-2.5 rounded-lg transition">
+          Download memorial_v1.docx
+        </a>
+      </div>
+    </section>
+
+    <!-- right: progress console -->
+    <section class="md:col-span-3 rounded-2xl border border-zinc-800 bg-zinc-900/50 overflow-hidden flex flex-col min-h-[560px]">
+      <div class="flex items-center justify-between px-5 py-3 border-b border-zinc-800 bg-zinc-950/60">
+        <div class="flex items-center gap-3">
+          <div class="flex gap-1.5">
+            <div class="w-3 h-3 rounded-full bg-red-500/70"></div>
+            <div class="w-3 h-3 rounded-full bg-yellow-500/70"></div>
+            <div class="w-3 h-3 rounded-full bg-green-500/70"></div>
+          </div>
+          <div class="text-xs text-zinc-400 mono">lexai pipeline</div>
+        </div>
+        <div id="status" class="text-xs text-zinc-500 mono">idle</div>
+      </div>
+
+      <div id="console" class="flex-1 overflow-auto px-6 py-5 mono text-[13px] leading-relaxed">
+        <div class="text-zinc-600">Waiting for a problem PDF&hellip;</div>
+        <div class="text-zinc-700 mt-2">Pipeline steps will stream here:</div>
+        <div class="text-zinc-700 pl-4">[1/5] Extract PDF text</div>
+        <div class="text-zinc-700 pl-4">[2/5] Gemini extracts legal issues</div>
+        <div class="text-zinc-700 pl-4">[3/5] Voyage + Pinecone retrieve cases; Gemini re-ranks</div>
+        <div class="text-zinc-700 pl-4">[4/5] Gemini drafts IRAC arguments; citations validated</div>
+        <div class="text-zinc-700 pl-4">[5/5] python-docx assembles memorial</div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="border-t border-zinc-900 py-8 px-6 text-center text-xs text-zinc-600">
+    <div>LexAI · Phase 1 de-risk · <a class="underline hover:text-zinc-400" href="https://github.com/tanish643/lex">github.com/tanish643/lex</a></div>
+  </footer>
+
+  <script>
+    const fileInput = document.getElementById('file');
+    const fileLabel = document.getElementById('file-label');
+    const drop = document.getElementById('drop');
+    const btn = document.getElementById('generate');
+    const consoleEl = document.getElementById('console');
+    const statusEl = document.getElementById('status');
+    const resultCard = document.getElementById('result-card');
+
+    function logLine(text, cls = 'text-zinc-300') {
+      const div = document.createElement('div');
+      div.className = `progress-line ${cls}`;
+      div.textContent = text;
+      consoleEl.appendChild(div);
+      consoleEl.scrollTop = consoleEl.scrollHeight;
+    }
+
+    fileInput.addEventListener('change', () => {
+      if (fileInput.files[0]) {
+        fileLabel.textContent = fileInput.files[0].name;
+        btn.disabled = false;
+      }
+    });
+
+    ;['dragenter', 'dragover'].forEach(evt => {
+      drop.addEventListener(evt, e => {
+        e.preventDefault();
+        drop.classList.add('border-indigo-500/80', 'bg-indigo-500/5');
+      });
+    });
+    ;['dragleave', 'drop'].forEach(evt => {
+      drop.addEventListener(evt, e => {
+        e.preventDefault();
+        drop.classList.remove('border-indigo-500/80', 'bg-indigo-500/5');
+      });
+    });
+    drop.addEventListener('drop', e => {
+      if (e.dataTransfer.files[0]) {
+        fileInput.files = e.dataTransfer.files;
+        fileInput.dispatchEvent(new Event('change'));
+      }
+    });
+
+    btn.addEventListener('click', async () => {
+      if (!fileInput.files[0]) return;
+      btn.disabled = true;
+      btn.textContent = 'Running…';
+      resultCard.classList.add('hidden');
+      consoleEl.innerHTML = '';
+
+      const fd = new FormData();
+      fd.append('pdf', fileInput.files[0]);
+      const params = new URLSearchParams({
+        title: document.getElementById('title').value,
+        tribunal: document.getElementById('tribunal').value,
+        case_number: document.getElementById('case_number').value,
+      });
+
+      statusEl.innerHTML = '<span class="text-amber-400 pulse-dot">running</span>';
+      logLine(`uploading ${fileInput.files[0].name}…`, 'text-zinc-500');
+
+      const resp = await fetch('/generate?' + params.toString(), { method: 'POST', body: fd });
+      if (!resp.ok) {
+        logLine('upload failed: ' + resp.status, 'text-rose-400');
+        btn.disabled = false;
+        btn.textContent = 'Generate memorial';
+        return;
+      }
+      const { job_id } = await resp.json();
+      logLine(`job ${job_id} started`, 'text-zinc-500');
+
+      const es = new EventSource(`/jobs/${job_id}/events`);
+      es.onmessage = (e) => {
+        const line = e.data;
+        if (line.startsWith('__DONE__')) {
+          const m = line.match(/issues=(\d+) citations=(\d+) hallucinations=(\d+)/);
+          if (m) {
+            document.getElementById('stat-issues').textContent = m[1];
+            document.getElementById('stat-cites').textContent = m[2];
+            document.getElementById('stat-hall').textContent = m[3];
+            document.getElementById('download').href = `/jobs/${job_id}/download`;
+          }
+          resultCard.classList.remove('hidden');
+          statusEl.innerHTML = '<span class="text-emerald-400">done</span>';
+          logLine('✓ memorial ready', 'text-emerald-400');
+        } else if (line.startsWith('__ERROR__')) {
+          statusEl.innerHTML = '<span class="text-rose-400">failed</span>';
+          logLine(line.replace('__ERROR__ ', ''), 'text-rose-400');
+        } else if (line === '__END__') {
+          es.close();
+          btn.disabled = false;
+          btn.textContent = 'Generate memorial';
+        } else {
+          let cls = 'text-zinc-300';
+          if (line.startsWith('[')) cls = 'text-indigo-300';
+          else if (line.trim().startsWith('->')) cls = 'text-emerald-400';
+          else if (line.trim().startsWith('-')) cls = 'text-zinc-400';
+          logLine(line, cls);
+        }
+      };
+      es.onerror = () => {
+        es.close();
+        statusEl.innerHTML = '<span class="text-rose-400">disconnected</span>';
+        btn.disabled = false;
+        btn.textContent = 'Generate memorial';
+      };
+    });
+  </script>
+</body>
+</html>
